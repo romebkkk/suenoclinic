@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SueñoClinic — Evaluación Clínica del Sueño, STOP-Bang & Epworth</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-card: #1f2937;
+      --surface-border: #374151;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #38bdf8;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius: 12px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; padding: 24px 16px; }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 32px; }
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 9999px; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; border: 1px solid rgba(99, 102, 241, 0.4); }
+    h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; color: #fff; }
+    h1 span { background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p.lead { color: var(--text-muted); font-size: 1.05rem; max-width: 640px; margin: 0 auto; line-height: 1.5; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; background: var(--surface); padding: 6px; border-radius: var(--radius); border: 1px solid var(--surface-border); margin-bottom: 24px; overflow-x: auto; }
+    .tab-btn { flex: 1; padding: 10px 16px; background: transparent; border: none; color: var(--text-muted); font-weight: 600; font-size: 0.95rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+    .tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+    /* Content Cards */
+    .panel { display: none; background: var(--surface); border: 1px solid var(--surface-border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); margin-bottom: 24px; }
+    .panel.active { display: block; }
+
+    h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; color: #fff; }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.4; }
+
+    /* Form items */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.85rem; font-weight: 600; color: #d1d5db; }
+    input[type="number"], select { background: var(--surface-card); border: 1px solid var(--surface-border); border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 1rem; outline: none; }
+    input[type="number"]:focus, select:focus { border-color: var(--primary); }
+
+    /* Switch list */
+    .switch-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .switch-card { display: flex; justify-content: space-between; align-items: center; background: var(--surface-card); border: 1px solid var(--surface-border); padding: 14px 18px; border-radius: 10px; cursor: pointer; transition: border-color 0.2s; }
+    .switch-card:hover { border-color: #4b5563; }
+    .switch-label { font-size: 0.95rem; font-weight: 500; }
+    .switch-desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: .3s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Epworth Rating Grid */
+    .epworth-row { display: flex; flex-direction: column; gap: 8px; background: var(--surface-card); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--surface-border); margin-bottom: 12px; }
+    @media (min-width: 640px) {
+      .epworth-row { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
+    .score-buttons { display: flex; gap: 6px; }
+    .score-btn { flex: 1; padding: 8px 12px; background: #374151; border: 1px solid #4b5563; border-radius: 6px; color: #d1d5db; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .score-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Result Box */
+    .result-box { padding: 20px; border-radius: 10px; margin-top: 24px; border: 1px solid; display: none; }
+    .result-box.active { display: block; }
+    .result-bajo { background: rgba(16, 185, 129, 0.1); border-color: var(--success); }
+    .result-intermedio { background: rgba(245, 158, 11, 0.1); border-color: var(--warning); }
+    .result-alto, .result-severa { background: rgba(239, 68, 68, 0.15); border-color: var(--danger); }
+
+    .score-badge { display: inline-block; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+    .action-btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+    .action-btn:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #374151; color: white; margin-left: 8px; }
+    .btn-secondary:hover { background: #4b5563; }
+
+    /* TCC-I Cards */
+    .guide-card { background: var(--surface-card); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 8px; margin-bottom: 12px; }
+    .guide-card h3 { font-size: 1.05rem; margin-bottom: 4px; color: #fff; }
+    .guide-card p { font-size: 0.9rem; color: #d1d5db; line-height: 1.45; }
+
+    /* Report view */
+    pre.report { background: #030712; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; color: #a5b4fc; white-space: pre-wrap; line-height: 1.5; border: 1px solid #1f2937; margin: 16px 0; max-height: 400px; overflow-y: auto; }
+
+    .disclaimer { font-size: 0.8rem; color: var(--text-muted); margin-top: 24px; text-align: center; line-height: 1.4; border-top: 1px solid var(--surface-border); padding-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">🌙 Medicina Respiratoria & Neurofisiología</div>
+      <h1>Sueño<span>Clinic</span></h1>
+      <p class="lead">Evaluación clínica integral del sueño: detección precoz de Apnea Obstructiva del Sueño (STOP-Bang) y Escala de Epworth. 100% privado en tu navegador.</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTab('stopbang')">1. Apnea (STOP-Bang)</button>
+      <button class="tab-btn" onclick="setTab('epworth')">2. Somnolencia (Epworth)</button>
+      <button class="tab-btn" onclick="setTab('tcci')">3. Higiene & TCC-I</button>
+      <button class="tab-btn" onclick="setTab('informe')">4. Informe Médico</button>
+    </div>
+
+    <!-- PANEL 1: STOP-BANG -->
+    <div id="panel-stopbang" class="panel active">
+      <h2>Cuestionario STOP-Bang para Apnea del Sueño</h2>
+      <p class="subtitle">Herramienta clínica de referencia (Sensibilidad > 93% para apnea moderada-grave). Rellena los datos para evaluar el riesgo de colapso de la vía respiratoria nocturna.</p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="sb-age">Edad (años)</label>
+          <input type="number" id="sb-age" value="48" min="18" max="100" onchange="calcularStopBang()">
+        </div>
+        <div class="form-group">
+          <label for="sb-gender">Sexo biológico</label>
+          <select id="sb-gender" onchange="calcularStopBang()">
+            <option value="male">Hombre</option>
+            <option value="female">Mujer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sb-bmi">IMC estimado (kg/m²)</label>
+          <input type="number" id="sb-bmi" value="28.5" step="0.5" min="15" max="60" onchange="calcularStopBang()">
+        </div>
+        <div class="form-group">
+          <label for="sb-neck">Perímetro del cuello (cm)</label>
+          <input type="number" id="sb-neck" value="41" min="25" max="60" onchange="calcularStopBang()">
+        </div>
+      </div>
+
+      <div class="switch-list">
+        <div class="switch-card" onclick="toggleCheckbox('sb-snore')">
+          <div>
+            <div class="switch-label">S - Ronquidos fuertes (Snoring)</div>
+            <div class="switch-desc">¿Ronca lo suficientemente fuerte como para ser escuchado a través de puertas cerradas?</div>
+          </div>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="sb-snore" onchange="calcularStopBang()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-card" onclick="toggleCheckbox('sb-tired')">
+          <div>
+            <div class="switch-label">T - Cansancio o fatiga diurna (Tired)</div>
+            <div class="switch-desc">¿Se siente frecuentemente agotado, somnoliento o sin energía durante el día?</div>
+          </div>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="sb-tired" onchange="calcularStopBang()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-card" onclick="toggleCheckbox('sb-observed')">
+          <div>
+            <div class="switch-label">O - Apneas observadas (Observed)</div>
+            <div class="switch-desc">¿Alguien ha observado que deja de respirar, se ahoga o jadea mientras duerme?</div>
+          </div>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="sb-observed" onchange="calcularStopBang()">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-card" onclick="toggleCheckbox('sb-pressure')">
+          <div>
+            <div class="switch-label">P - Presión arterial alta (Pressure)</div>
+            <div class="switch-desc">¿Ha recibido diagnóstico de hipertensión o toma medicamentos para la tensión?</div>
+          </div>
+          <label class="toggle" onclick="event.stopPropagation()">
+            <input type="checkbox" id="sb-pressure" onchange="calcularStopBang()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div id="sb-result" class="result-box active">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </div>
+
+    <!-- PANEL 2: EPWORTH -->
+    <div id="panel-epworth" class="panel">
+      <h2>Escala de Somnolencia de Epworth (ESS)</h2>
+      <p class="subtitle">Indica la probabilidad de quedarte dormido o dar una cabezada (no sólo sentirse cansado) en las siguientes situaciones cotidianas. (0 = Nunca, 1 = Poca, 2 = Moderada, 3 = Alta).</p>
+
+      <div id="epworth-container"></div>
+
+      <div id="ep-result" class="result-box active">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </div>
+
+    <!-- PANEL 3: TCC-I HIGIENE -->
+    <div id="panel-tcci" class="panel">
+      <h2>Higiene del Sueño & TCC-I</h2>
+      <p class="subtitle">Pautas conductuales de primera línea recomendadas por la Academia Americana de Medicina del Sueño (AASM).</p>
+      <div id="tcci-container"></div>
+    </div>
+
+    <!-- PANEL 4: INFORME MÉDICO -->
+    <div id="panel-informe" class="panel">
+      <h2>Dossier Clínico para Consulta Médica</h2>
+      <p class="subtitle">Documento sintetizado con las escalas estandarizadas para presentar a tu médico de familia o neumólogo en la Unidad del Sueño.</p>
+      
+      <pre id="informe-texto" class="report"></pre>
+
+      <div style="margin-top: 16px;">
+        <button class="action-btn" onclick="copiarInforme()">📋 Copiar al Portapapeles</button>
+        <button class="action-btn btn-secondary" onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      ⚠️ <strong>Aviso Clínico Responsable:</strong> SueñoClinic es una herramienta de cribado preliminar y educación sanitaria orientativa basada en la literatura médica indexada (STOP-Bang y Epworth ESS). No proporciona un diagnóstico clínico definitivo ni reemplaza una Polisomnografía de noche completa (PSG). Los datos no salen de su dispositivo.
+    </div>
+  </div>
+
+  <script src="sueno.js"></script>
+  <script>
+    var epworthAnswers = [0, 0, 0, 0, 0, 0, 0, 0];
+
+    function initEpworthUI() {
+      var container = document.getElementById('epworth-container');
+      container.innerHTML = '';
+
+      SuenoClinic.EPWORTH_SITUATIONS.forEach(function (sit, index) {
+        var row = document.createElement('div');
+        row.className = 'epworth-row';
+        row.innerHTML = 
+          '<div>' +
+            '<div style="font-weight: 600; font-size: 0.95rem;">' + (index + 1) + '. ' + sit.text + '</div>' +
+          '</div>' +
+          '<div class="score-buttons">' +
+            '<button class="score-btn active" onclick="setEpworthScore(' + index + ', 0, this)">0: Nunca</button>' +
+            '<button class="score-btn" onclick="setEpworthScore(' + index + ', 1, this)">1: Poca</button>' +
+            '<button class="score-btn" onclick="setEpworthScore(' + index + ', 2, this)">2: Media</button>' +
+            '<button class="score-btn" onclick="setEpworthScore(' + index + ', 3, this)">3: Alta</button>' +
+          '</div>';
+        container.appendChild(row);
+      });
+    }
+
+    function setEpworthScore(index, val, btn) {
+      epworthAnswers[index] = val;
+      var parent = btn.parentElement;
+      var btns = parent.querySelectorAll('.score-btn');
+      btns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      calcularEpworth();
+    }
+
+    function toggleCheckbox(id) {
+      var cb = document.getElementById(id);
+      cb.checked = !cb.checked;
+      calcularStopBang();
+    }
+
+    function getStopBangParams() {
+      return {
+        age: parseInt(document.getElementById('sb-age').value, 10) || 0,
+        gender: document.getElementById('sb-gender').value,
+        bmi: parseFloat(document.getElementById('sb-bmi').value) || 0,
+        neckCircumferenceCm: parseFloat(document.getElementById('sb-neck').value) || 0,
+        snore: document.getElementById('sb-snore').checked,
+        tired: document.getElementById('sb-tired').checked,
+        observed: document.getElementById('sb-observed').checked,
+        pressure: document.getElementById('sb-pressure').checked
+      };
+    }
+
+    function calcularStopBang() {
+      var params = getStopBangParams();
+      var res = SuenoClinic.evaluarStopBang(params);
+      var container = document.getElementById('sb-result');
+      
+      container.className = 'result-box active result-' + res.riesgo;
+      container.innerHTML = 
+        '<div class="score-badge">Puntuación: ' + res.puntuacionTotal + ' / 8 (' + res.riesgo.toUpperCase() + ' RIESGO)</div>' +
+        '<p style="font-size: 1.05rem; margin-bottom: 8px;"><strong>Probabilidad de Apnea Moderada a Grave (IAH ≥ 15):</strong> ' + res.probabilidadAOSModeradaSevera + '</p>' +
+        '<p style="color: #d1d5db; line-height: 1.5;">' + res.recomendacion + '</p>';
+
+      actualizarTCCI(params);
+      actualizarInforme();
+    }
+
+    function calcularEpworth() {
+      var res = SuenoClinic.evaluarEpworth(epworthAnswers);
+      var container = document.getElementById('ep-result');
+
+      container.className = 'result-box active result-' + res.nivel;
+      container.innerHTML = 
+        '<div class="score-badge">Puntuación ESS: ' + res.puntuacion + ' / 24</div>' +
+        '<p style="font-size: 1.05rem; margin-bottom: 8px;"><strong>' + res.descripcion + '</strong></p>' +
+        '<p style="color: #d1d5db; line-height: 1.5;">' + res.recomendacion + '</p>' +
+        (res.riesgoAccidenteConduccion ? '<div style="margin-top: 10px; padding: 10px; background: rgba(239, 68, 68, 0.2); border-radius: 6px; color: #fca5a5; font-size: 0.85rem; font-weight: 600;">⚠️ ALERTA DE SEGURIDAD VIAL: Puntuación de somnolencia con alto riesgo de micro-sueño al volante.</div>' : '');
+
+      actualizarInforme();
+    }
+
+    function actualizarTCCI(params) {
+      var recs = SuenoClinic.generarRecomendacionesTCCI(params);
+      var container = document.getElementById('tcci-container');
+      container.innerHTML = '';
+      recs.forEach(function (r) {
+        var card = document.createElement('div');
+        card.className = 'guide-card';
+        card.innerHTML = 
+          '<div style="font-size: 0.75rem; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 4px;">' + r.categoria + '</div>' +
+          '<h3>' + r.titulo + '</h3>' +
+          '<p>' + r.detalle + '</p>';
+        container.appendChild(card);
+      });
+    }
+
+    function actualizarInforme() {
+      var params = getStopBangParams();
+      var inf = SuenoClinic.generarInformeClinico({
+        epworthScores: epworthAnswers,
+        stopBangParams: params
+      });
+      document.getElementById('informe-texto').textContent = inf.textoPlano;
+    }
+
+    function copiarInforme() {
+      var texto = document.getElementById('informe-texto').textContent;
+      navigator.clipboard.writeText(texto).then(function () {
+        alert('Informe copiado al portapapeles. Listo para pegar en consulta médica o imprimir.');
+      });
+    }
+
+    function setTab(tabName) {
+      var tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(function (t) { t.classList.remove('active'); });
+
+      var panels = document.querySelectorAll('.panel');
+      panels.forEach(function (p) { p.classList.remove('active'); });
+
+      if (tabName === 'stopbang') {
+        tabs[0].classList.add('active');
+        document.getElementById('panel-stopbang').classList.add('active');
+      } else if (tabName === 'epworth') {
+        tabs[1].classList.add('active');
+        document.getElementById('panel-epworth').classList.add('active');
+      } else if (tabName === 'tcci') {
+        tabs[2].classList.add('active');
+        document.getElementById('panel-tcci').classList.add('active');
+      } else if (tabName === 'informe') {
+        tabs[3].classList.add('active');
+        document.getElementById('panel-informe').classList.add('active');
+      }
+    }
+
+    // Inicialización
+    window.addEventListener('DOMContentLoaded', function () {
+      initEpworthUI();
+      calcularStopBang();
+      calcularEpworth();
+    });
+  </script>
+</body>
+</html>
