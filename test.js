@@ -101,4 +101,23 @@ assert.strictEqual(informe.epworth.puntuacion, 13);
 assert.strictEqual(informe.stopBang.riesgo, 'alto');
 console.log('✅ Test 7 Superado: Informe clínico consolidado emitido fielmente.');
 
-console.log('\n--- TODOS LOS 7 TESTS DE SUEÑOCLINIC SUPERADOS EXITOSAMENTE ---');
+// Test 8: Analizador acústico de ronquidos y silencios apneicos v2.0
+const audioSamples = [
+  { timestampMs: 1000, nivelDb: 62 }, // Ronquido fuerte
+  { timestampMs: 2000, nivelDb: 65 }, // Ronquido
+  { timestampMs: 3000, nivelDb: 25 }, // Inicio silencio
+  { timestampMs: 15000, nivelDb: 28 }, // 12s de silencio (pausa apneica)
+  { timestampMs: 16000, nivelDb: 68 }, // Ronquido de rescate
+  { timestampMs: 17000, nivelDb: 60 },
+  { timestampMs: 18000, nivelDb: 22 },
+  { timestampMs: 30000, nivelDb: 24 }, // 12s de silencio (2ª pausa)
+  { timestampMs: 31000, nivelDb: 66 },
+  { timestampMs: 32000, nivelDb: 63 }
+];
+const resAcustico = SuenoClinic.analizarEnvolventeRonquidos(audioSamples);
+assert.strictEqual(resAcustico.suficienteDatos, true);
+assert.strictEqual(resAcustico.pausasApneicasDetectadas, 2);
+assert.strictEqual(resAcustico.totalRonquidosDetectados, 6);
+console.log('✅ Test 8 Superado: Analizador acústico nocturno detecta pausas apneicas y ronquidos.');
+
+console.log('\n--- TODOS LOS 8 TESTS DE SUEÑOCLINIC v2.0.0 SUPERADOS EXITOSAMENTE ---');

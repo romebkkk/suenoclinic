@@ -252,5 +252,58 @@
     };
   };
 
+  /**
+   * Analizador acústico de ronquidos y silencios respiratorios v2.0
+   * Procesa la envolvente de audio en decibelios para estimar el IAH (Índice de Apnea-Hipopnea) acústico
+   * @param {Array<{timestampMs: number, nivelDb: number}>} muestrasAudio
+   */
+  SuenoClinic.analizarEnvolventeRonquidos = function (muestrasAudio) {
+    if (!Array.isArray(muestrasAudio) || muestrasAudio.length < 10) {
+      return { suficienteDatos: false, mensaje: 'Se requieren más muestras de sonido nocturno.' };
+    }
+
+    var UMBRAL_RONQUIDO_DB = 55; // Nivel típico de ronquido clínicamente relevante
+    var eventosRonquido = 0;
+    var pausasSilencioLargas = 0; // Pausas > 10 segundos
+    var enSilencio = false;
+    var inicioSilencioMs = 0;
+
+    for (var i = 0; i < muestrasAudio.length; i++) {
+      var m = muestrasAudio[i];
+      if (m.nivelDb >= UMBRAL_RONQUIDO_DB) {
+        eventosRonquido++;
+        if (enSilencio) {
+          var duracionPausaSec = (m.timestampMs - inicioSilencioMs) / 1000;
+          if (duracionPausaSec >= 10) {
+            pausasSilencioLargas++;
+          }
+          enSilencio = false;
+        }
+      } else {
+        if (!enSilencio) {
+          enSilencio = true;
+          inicioSilencioMs = m.timestampMs;
+        }
+      }
+    }
+
+    var duracionTotalHoras = Math.max(0.1, (muestrasAudio[muestrasAudio.length - 1].timestampMs - muestrasAudio[0].timestampMs) / 3600000);
+    var iahEstimado = Math.round((pausasSilencioLargas / duracionTotalHoras) * 10) / 10;
+
+    var sospechaAOS = iahEstimado >= 5 || eventosRonquido > 50;
+
+    return {
+      suficienteDatos: true,
+      duracionHoras: Math.round(duracionTotalHoras * 10) / 10,
+      totalRonquidosDetectados: eventosRonquido,
+      pausasApneicasDetectadas: pausasSilencioLargas,
+      iahAcusticoEstimado: iahEstimado,
+      sospechaAOS: sospechaAOS,
+      mensaje: sospechaAOS 
+        ? 'Patrón acústico sospechoso de Apnea del Sueño (ronquidos frecuentes intercalados con pausas de silencio > 10s).'
+        : 'Patrón sonoro sin interrupciones apneicas prolongadas detectadas.'
+    };
+  };
+
   return SuenoClinic;
 });
